@@ -1,4 +1,4 @@
-name: Publish Debian Container Images
+name: Publish Container Images
 
 on:
   push:
@@ -7,12 +7,7 @@ on:
 
 jobs:
   docker:
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        include:
-          - image: ghcr.io/invoiceninja/invoiceninja-octane
-            context: debian
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout
@@ -20,31 +15,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Prepare
-        id: prep
-        run: |
-          DOCKER_IMAGE=${{ matrix.image }}
-          VERSION=edge
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/}
-          fi
-          TAGS="${DOCKER_IMAGE}:${VERSION}"
-          MAJOR="$(echo "${VERSION}" | cut -d. -f1)"
-          MINOR="$(echo "${VERSION}" | cut -d. -f2)"
-          TAGS="$TAGS,${DOCKER_IMAGE}:${MAJOR},${DOCKER_IMAGE}:${MAJOR}.${MINOR}"
-          
-          # Debug output
-          echo "Current version: ${VERSION}"
-          echo "Version pattern check: $([[ $VERSION =~ ^5\.[0-9]{1,3}\.[0-9]{1,3}$ ]] && echo "matches" || echo "doesn't match")"
-          
-          TAGS="$TAGS,${DOCKER_IMAGE}:latest"
-
-          echo "tags=${TAGS}" >> $GITHUB_OUTPUT  # Updated output syntax
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "major=${MAJOR}" >> $GITHUB_OUTPUT
-
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3  # Updated from v1
+        uses: docker/setup-qemu-action@v3
         with:
           platforms: all
 
@@ -63,11 +35,11 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v5
         with:
-          context: ${{ matrix.context }}
-          build-args: INVOICENINJA_VERSION=${{ steps.prep.outputs.version }}
+          context: debian
+          build-args: INVOICENINJA_VERSION=${{ github.ref_name }}
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.prep.outputs.tags }}
+          tags: ${{ github.ref_name }},lastest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
