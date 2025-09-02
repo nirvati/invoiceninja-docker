@@ -4,7 +4,7 @@ ARG DEBIAN_VERSION=trixie
 
 FROM dunglas/frankenphp:${FRANKENPHP_VERSION}-php${PHP_VERSION}-${DEBIAN_VERSION} AS prepare-app
 
-RUN curl -sL "https://github.com/invoiceninja/invoiceninja/releases/latest/download/invoiceninja.tar.gz" | \
+RUN curl -sL "https://github.com/nirvati/invoiceninja/releases/latest/download/invoiceninja.tar.gz" | \
     tar -xz \
     && ln -s ./resources/views/react/index.blade.php ./public/index.html \
     # Symlink
