@@ -2,8 +2,8 @@ name: Publish Debian Container Images
 
 on:
   push:
-    tags-ignore:
-      - "invoiceninja-*"
+    tags:
+      - "v*"
 
 jobs:
   docker:
